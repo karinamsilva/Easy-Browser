@@ -12,13 +12,14 @@ class ViewController: UIViewController {
     
     var webView: WKWebView?
     var progressView: UIProgressView?
+    var websites = ["apple.com", "hackingwithswift.com", "google.com" ]
     
     override func loadView() {
         webView = WKWebView()
         webView?.navigationDelegate = self
         view = webView
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         webView?.allowsBackForwardNavigationGestures = true
@@ -29,16 +30,16 @@ class ViewController: UIViewController {
     
     @objc func openTapped() {
         let alert = UIAlertController(title: "Open Page", message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "apple.com", style: .default, handler: openLink))
-        alert.addAction(UIAlertAction(title: "hackingwithswift.com", style: .default, handler: openLink))
+        for website in websites {
+            alert.addAction(UIAlertAction(title: website, style: .default, handler: openLink))
+        }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         present(alert, animated: true)
     }
     
     func openLink(action: UIAlertAction) {
-        guard let title = action.title,
-        let url = URL(string: "https://\(title)")  else { return }
+        guard let url = URL(string: "https://www.google.com")  else { return }
         webView?.load(URLRequest(url: url))
     }
     
@@ -49,12 +50,22 @@ class ViewController: UIViewController {
     func setToolbar() {
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView?.reload))
+        let leftButton = UIBarButtonItem(title: "Back", style: .plain, target: webView, action: #selector(webView?.goBack))
+        let rightButton = UIBarButtonItem(title: "Forward", style: .plain, target: webView, action: #selector(webView?.goForward))
         progressView = UIProgressView(progressViewStyle: .default)
         progressView?.sizeToFit()
         guard let progressViewUnwrapped = progressView  else { return }
         let progressButton = UIBarButtonItem(customView: progressViewUnwrapped)
-        toolbarItems = [progressButton, spacer, refresh]
+        toolbarItems = [leftButton, progressButton, spacer, refresh, rightButton]
         navigationController?.isToolbarHidden = false
+    }
+    
+    func showDenyAlert() {
+        let alert = UIAlertController(title: "Acesso negado", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Sair", style: .cancel))
+        if presentedViewController == nil {
+            self.present(alert, animated: true)
+        }
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -63,12 +74,24 @@ class ViewController: UIViewController {
             progressView?.progress = Float(webView.estimatedProgress)
         }
     }
-
 }
 
 extension ViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         title = webView.title
     }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url else { return }
+        if let host = url.host {
+            for website in websites {
+                if host.contains(website) {
+                    decisionHandler(.allow)
+                    return
+                }
+            }
+            showDenyAlert()
+        }
+        decisionHandler(.cancel)
+    }
 }
-
