@@ -50,14 +50,20 @@ class ViewController: UIViewController {
     func setToolbar() {
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView?.reload))
-        let leftButton = UIBarButtonItem(title: "Back", style: .plain, target: webView, action: #selector(webView?.goBack))
-        let rightButton = UIBarButtonItem(title: "Forward", style: .plain, target: webView, action: #selector(webView?.goForward))
+        let left = createButtons(title: "back", action: #selector(webView?.goBack))
+        let right = createButtons(title: "forward", action: #selector(webView?.goForward))
         progressView = UIProgressView(progressViewStyle: .default)
         progressView?.sizeToFit()
         guard let progressViewUnwrapped = progressView  else { return }
         let progressButton = UIBarButtonItem(customView: progressViewUnwrapped)
-        toolbarItems = [leftButton, progressButton, spacer, refresh, rightButton]
+        toolbarItems = [left, progressButton, spacer, refresh, right]
         navigationController?.isToolbarHidden = false
+    }
+    
+    func createButtons(title: String, action: Selector?) -> UIBarButtonItem {
+        let button = UIBarButtonItem(title: title, style: .plain, target: webView, action: action)
+        return button
+        
     }
     
     func showDenyAlert() {
