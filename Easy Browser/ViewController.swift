@@ -39,7 +39,7 @@ class ViewController: UIViewController {
     }
     
     func openLink(action: UIAlertAction) {
-        guard let url = URL(string: "https://www.google.com")  else { return }
+        guard let url = URL(string: "https://\(action.title!)")  else { return }
         webView?.load(URLRequest(url: url))
     }
     
@@ -92,6 +92,7 @@ extension ViewController: WKNavigationDelegate {
             }
             showDenyAlert()
         }
+
         decisionHandler(.cancel)
     }
 }
